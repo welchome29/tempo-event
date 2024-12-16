@@ -16,11 +16,11 @@ app.use(cors());
 const excelFilePath = path.join(__dirname, 'inscriptions.xlsx');
 
 // Servir les fichiers statiques depuis le dossier 'public'
-app.use(express.static(path.join(__dirname, 'Public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rediriger la racine vers tempo-event.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Public', 'tempo-event.html'));
+    res.sendFile(path.join(__dirname, 'public', 'tempo-event.html'));
 });
 
 // Vérifie si le fichier Excel existe, sinon crée-le
