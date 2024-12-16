@@ -6,7 +6,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Render fournit un port dynamique
+const PORT = process.env.PORT || 3000; // Port fourni par Render ou 3000 localement
 
 // Middleware
 app.use(bodyParser.json());
@@ -15,11 +15,12 @@ app.use(cors());
 // Chemin du fichier Excel
 const excelFilePath = path.join(__dirname, 'inscriptions.xlsx');
 
-// Servir les fichiers statiques depuis un dossier dédié
-app.use(express.static(path.join(__dirname, 'Public')));
+// Servir les fichiers statiques depuis le dossier 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Rediriger la racine vers tempo-event.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Public', 'tempo-event.html'));
+    res.sendFile(path.join(__dirname, 'public', 'tempo-event.html'));
 });
 
 // Vérifie si le fichier Excel existe, sinon crée-le
@@ -32,9 +33,12 @@ if (!fs.existsSync(excelFilePath)) {
 
 // Endpoint pour récupérer la liste des chansons
 app.get('/chansons', (req, res) => {
-    const workbook = xlsx.readFile(excelFilePath);
-    const worksheet = workbook.Sheets['Inscriptions'];
-    const data = xlsx.utils.sheet_to_json(worksheet);
+    let data = [];
+    if (fs.existsSync(excelFilePath)) {
+        const workbook = xlsx.readFile(excelFilePath);
+        const worksheet = workbook.Sheets['Inscriptions'];
+        data = xlsx.utils.sheet_to_json(worksheet);
+    }
 
     const chansons = [
         { id: 1, titre: "Pour un flirt - Michel Delpech", choisiPar: null },
@@ -104,9 +108,15 @@ app.get('/chansons', (req, res) => {
 app.post('/inscrire', (req, res) => {
     const { prenom, nom, chansonId } = req.body;
 
-    const workbook = xlsx.readFile(excelFilePath);
-    const worksheet = workbook.Sheets['Inscriptions'];
-    const data = xlsx.utils.sheet_to_json(worksheet);
+    let workbook;
+    let data = [];
+    if (fs.existsSync(excelFilePath)) {
+        workbook = xlsx.readFile(excelFilePath);
+        const worksheet = workbook.Sheets['Inscriptions'];
+        data = xlsx.utils.sheet_to_json(worksheet);
+    } else {
+        workbook = xlsx.utils.book_new();
+    }
 
     const chansons = [
         { id: 1, titre: "Imagine - John Lennon" },
@@ -120,15 +130,33 @@ app.post('/inscrire', (req, res) => {
         return res.status(400).json({ error: "Chanson introuvable" });
     }
 
+    const dejaChoisie = data.find((entry) => entry.Chanson === chanson.titre);
+    if (dejaChoisie) {
+        return res.status(400).json({ error: "Cette chanson est déjà choisie." });
+    }
+
     data.push({ Participant: `${prenom} ${nom}`, Chanson: chanson.titre });
     const newWorksheet = xlsx.utils.json_to_sheet(data);
-    workbook.Sheets['Inscriptions'] = newWorksheet;
+    xlsx.utils.book_append_sheet(workbook, newWorksheet, 'Inscriptions');
     xlsx.writeFile(workbook, excelFilePath);
 
     res.json({ message: "Inscription réussie", chanson });
 });
 
-// Démarrer le serveur
+// Endpoint pour télécharger le fichier Excel
+app.get('/telecharger-inscriptions', (req, res) => {
+    if (fs.existsSync(excelFilePath)) {
+        res.download(excelFilePath, 'inscriptions.xlsx', (err) => {
+            if (err) {
+                res.status(500).send('Erreur lors du téléchargement du fichier.');
+            }
+        });
+    } else {
+        res.status(404).send('Le fichier inscriptions.xlsx n\'existe pas.');
+    }
+});
+
+// Lancer le serveur
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
