@@ -3,19 +3,20 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const xlsx = require('xlsx');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Render fournit un port dynamique
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
 
 // Chemin du fichier Excel
-const excelFilePath = './inscriptions.xlsx';
+const excelFilePath = path.join(__dirname, 'inscriptions.xlsx');
 
-// Servir les fichiers statiques depuis le dossier actuel
-app.use(express.static(__dirname));
+// Servir les fichiers statiques depuis un dossier dédié
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Vérifie si le fichier Excel existe, sinon crée-le
 if (!fs.existsSync(excelFilePath)) {
@@ -78,5 +79,5 @@ app.post('/inscrire', (req, res) => {
 
 // Démarrer le serveur
 app.listen(PORT, () => {
-    console.log(`Serveur démarré sur http://localhost:${PORT}/tempo-event.html`);
+    console.log(`Serveur démarré sur le port ${PORT}`);
 });
