@@ -113,12 +113,16 @@ app.post('/inscrire', (req, res) => {
     let workbook;
     let data = [];
 
+    // Vérifie si le fichier Excel existe
     if (fs.existsSync(excelFilePath)) {
         // Lire le fichier Excel existant
         workbook = xlsx.readFile(excelFilePath);
         const worksheet = workbook.Sheets['Inscriptions'];
+
+        // Convertir les données de la feuille en JSON (ou tableau vide si la feuille est absente)
         data = worksheet ? xlsx.utils.sheet_to_json(worksheet) : [];
     } else {
+        // Si le fichier n'existe pas, le créer
         console.log("Fichier Excel non trouvé. Création d'un nouveau fichier...");
         workbook = xlsx.utils.book_new();
     }
@@ -183,6 +187,7 @@ app.post('/inscrire', (req, res) => {
         return res.status(400).json({ error: "Chanson introuvable" });
     }
 
+    // Vérifie si la chanson a déjà été choisie
     const dejaChoisie = data.find((entry) => entry.Chanson === chanson.titre);
     if (dejaChoisie) {
         console.error("Chanson déjà choisie :", chanson.titre);
@@ -195,13 +200,16 @@ app.post('/inscrire', (req, res) => {
     // Convertir les données en feuille Excel
     const newWorksheet = xlsx.utils.json_to_sheet(data);
 
-    // Supprimer la feuille existante si elle existe
+    // Supprimer l'ancienne feuille si elle existe
     if (workbook.Sheets['Inscriptions']) {
+        console.log("Suppression de l'ancienne feuille 'Inscriptions'.");
         delete workbook.Sheets['Inscriptions'];
     }
 
     // Ajouter la nouvelle feuille au fichier Excel
     xlsx.utils.book_append_sheet(workbook, newWorksheet, 'Inscriptions');
+
+    // Sauvegarder le fichier Excel
     xlsx.writeFile(workbook, excelFilePath);
 
     console.log("Inscription ajoutée avec succès :", { prenom, nom, chanson: chanson.titre });
