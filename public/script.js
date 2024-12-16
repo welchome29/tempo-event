@@ -1,4 +1,4 @@
-const API_URL = "https://tempo-event-1.onrender.com";
+const API_URL = "https://tempo-event.onrender.com";
 
 // Référence des éléments HTML
 const form = document.getElementById("karaoke-form");
