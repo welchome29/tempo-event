@@ -18,6 +18,10 @@ const excelFilePath = path.join(__dirname, 'inscriptions.xlsx');
 // Servir les fichiers statiques depuis un dossier dédié
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tempo-event.html'));
+});
+
 // Vérifie si le fichier Excel existe, sinon crée-le
 if (!fs.existsSync(excelFilePath)) {
     const workbook = xlsx.utils.book_new();
