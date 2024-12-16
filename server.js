@@ -225,14 +225,3 @@ app.get('/telecharger-inscriptions', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
-
-app.delete('/supprimer-inscriptions', (req, res) => {
-    if (fs.existsSync(excelFilePath)) {
-        fs.unlinkSync(excelFilePath);
-        console.log('Fichier inscriptions.xlsx supprimé avec succès.');
-        res.json({ message: 'Fichier inscriptions.xlsx supprimé.' });
-    } else {
-        console.log('Le fichier inscriptions.xlsx n\'existe pas.');
-        res.status(404).json({ error: 'Le fichier inscriptions.xlsx n\'existe pas.' });
-    }
-});
