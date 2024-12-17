@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Chemin du fichier Excel
-const excelFilePath = path.join(__dirname, 'Inscription-Tempo.xlsx');
+const excelFilePath = path.join(__dirname, 'Inscription-taratatoche.xlsx');
 
 const chansons = [
     { id: 1, titre: "Pour un flirt - Michel Delpech", choisiPar: null },
